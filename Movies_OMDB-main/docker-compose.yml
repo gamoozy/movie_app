@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      MYSQL_DATABASE: movie_app
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  springboot:
+    build:
+      context: ./movies_spring
+    container_name: springboot
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/movie_app
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD:
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql
+
+  angular:
+    build:
+      context: ./movies_angular2/movie
+    container_name: angular
+    ports:
+      - "4200:4200" # Nginx default port for HTTP
+
+    command: ["ng", "serve", "--host", "0.0.0.0"]
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ""
+      PMA_PORT: 3306
+    ports:
+      - "80:80"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-data:
